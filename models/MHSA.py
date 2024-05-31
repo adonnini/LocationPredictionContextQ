@@ -1,5 +1,3 @@
-from typing import List
-
 import torch.nn as nn
 import numpy as np
 import torch, math
@@ -36,15 +34,11 @@ class TransEncoder(nn.Module):
 
     # def forward(self, src, context_dict, device) -> Tensor:
 
-    # def forward(self, src, context_dict) -> Tensor:
-    # def forward(self, src, tensor_len, tensor_user, tensor_time, tensor_diff, tensor_duration, tensor_weekday) -> Tensor:
-
-    def forward(self, src, tensor_len, tensor_user, tensor_time, tensor_diff, tensor_duration, tensor_weekday) -> Tensor:
+    def forward(self, src, context_dict) -> Tensor:
         # print("LocationPrediction - models - MHSA - about to run AllEmbedding --- ")
         # emb = self.Embedding(src, context_dict)
-        emb = self.Embedding(src, tensor_len, tensor_user, tensor_time, tensor_diff, tensor_duration, tensor_weekday)
-        seq_len = tensor_len
-        # seq_len = context_dict["len"]
+        emb = self.Embedding(src, context_dict)
+        seq_len = context_dict["len"]
 
         # positional encoding, dropout performed inside
         src_mask = self._generate_square_subsequent_mask(src.shape[0])
@@ -59,14 +53,10 @@ class TransEncoder(nn.Module):
             seq_len.view([1, -1, 1]).expand([1, out.shape[1], out.shape[-1]]) - 1,
         ).squeeze(0)
 
-        return self.FC(out, tensor_user)
-        # return self.FC(out, context_dict["user"])
+        return self.FC(out, context_dict["user"])
 
-    def _generate_square_subsequent_mask(self, sz: int):
-        print("LocationPrediction - MHSA.py - _generate_square_subsequent_mask - sz - 0 - ", sz)
-        temp_tensor = torch.full([sz, sz],  float("-inf"))
-        return torch.triu(temp_tensor, diagonal=1)
-        # return torch.triu(torch.full((sz, sz), float("-inf")), diagonal=1)
+    def _generate_square_subsequent_mask(self, sz):
+        return torch.triu(torch.full((sz, sz), float("-inf")), diagonal=1)
 
     def _init_weights(self):
         """Initiate parameters in the transformer model."""
