@@ -19,8 +19,6 @@ c) In the executorch directory, run the following commands to install packages n
 1. If there is a folder called ```temp``` in <working directory>/data delete it.
 2. In the working directory, execute the python main.py config/geolife/transformer.yml script. 
 
-Validation after every epoch has been disabled as it intefered with torchscript execution (when torchscript was enabled).
-
 ## Notes - Please Read
 i) I am new to Python. Please bear in this mind as you will probably find some (many) of the things I did amateurish/beginner.
 
