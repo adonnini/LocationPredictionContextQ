@@ -295,202 +295,196 @@ def trainNet(config, model, train_loader, val_loader, device, log_dir):
 
         # ACTIVATE IN ORDER TO RUN EXECUTTORCH - START - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 
-        # m = TransEncoder(config, total_loc_num).to(device)
-        # # m = TransEncoder(config, config.total_loc_num).to(device)
+        m = TransEncoder(config, total_loc_num).to(device)
+        # m = TransEncoder(config, config.total_loc_num).to(device)
+
+        m.eval()
+
+        # exported_program: torch.export.ExportedProgram = export(m, (config, config.total_loc_num))
+        # print(exported_program)
+
+        # print(exir.capture(m, (config, config.total_loc_num)).to_edge())
         #
-        # m.eval()
+        # constraints = [
+        #             # dec_input:
+        #             dynamic_dim(dec_input, 0) == dynamic_dim(enc_input, 0),
         #
-        # # ACTIVATE IN ORDER TO RUN EXECUTTORCH - END - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+        #             # dec_source_mask:
+        #             dynamic_dim(dec_source_mask, 0) == dynamic_dim(enc_input, 0),
         #
-        # # exported_program: torch.export.ExportedProgram = export(m, (config, config.total_loc_num))
-        # # print(exported_program)
+        #             # dec_target_mask:
+        #             dynamic_dim(dec_target_mask, 0) == dynamic_dim(enc_input, 0),
+        # ]
+
+        # def specify_constraints(config, total_loc_num):
+        #     return [
+        #         # dec_input:
+        #         dynamic_dim(dec_input, 0) == dynamic_dim(enc_input, 0),
         #
-        # # print(exir.capture(m, (config, config.total_loc_num)).to_edge())
-        # #
-        # # constraints = [
-        # #             # dec_input:
-        # #             dynamic_dim(dec_input, 0) == dynamic_dim(enc_input, 0),
-        # #
-        # #             # dec_source_mask:
-        # #             dynamic_dim(dec_source_mask, 0) == dynamic_dim(enc_input, 0),
-        # #
-        # #             # dec_target_mask:
-        # #             dynamic_dim(dec_target_mask, 0) == dynamic_dim(enc_input, 0),
-        # # ]
+        #         # dec_source_mask:
+        #         dynamic_dim(dec_source_mask, 0) == dynamic_dim(enc_input, 0),
         #
-        # # def specify_constraints(config, total_loc_num):
-        # #     return [
-        # #         # dec_input:
-        # #         dynamic_dim(dec_input, 0) == dynamic_dim(enc_input, 0),
-        # #
-        # #         # dec_source_mask:
-        # #         dynamic_dim(dec_source_mask, 0) == dynamic_dim(enc_input, 0),
-        # #
-        # #         # dec_target_mask:
-        # #         dynamic_dim(dec_target_mask, 0) == dynamic_dim(enc_input, 0),
-        # #         ]
+        #         # dec_target_mask:
+        #         dynamic_dim(dec_target_mask, 0) == dynamic_dim(enc_input, 0),
+        #         ]
+
+        #        constraints = [
+        #            dynamic_dim(enc_input_tensor, 0),
+        #            dynamic_dim(dec_input, 0),
+        #            dynamic_dim(dec_source_mask, 0),
+        #            dynamic_dim(dec_target_mask, 0),
+        #            dynamic_dim(dec_input, 0) == dynamic_dim(enc_input, 0),
+        #            dynamic_dim(dec_source_mask, 0) == dynamic_dim(enc_input, 0),
+        #            dynamic_dim(dec_target_mask, 0) == dynamic_dim(enc_input, 0),
+        #        ]
+
+        # constraints = [
+        # # First dimension of each input is a dynamic batch size
+        #     dynamic_dim(enc_input_tensor, 0),
+        #     dynamic_dim(dec_input, 0),
+        # # The dynamic batch size between the inputs are equal
+        # #     dynamic_dim(enc_input.shape[0], 0) == dynamic_dim(dec_input.shape[0], 0),
+        # ]
+
+        # constraints = [
+        #     # dec_input:
+        #     dynamic_dim(dec_input, 0) == dynamic_dim(enc_input, 0),
         #
-        # # ACTIVATE IN ORDER TO RUN EXECUTTORCH - START - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-        # #        constraints = [
-        # #            dynamic_dim(enc_input_tensor, 0),
-        # #            dynamic_dim(dec_input, 0),
-        # #            dynamic_dim(dec_source_mask, 0),
-        # #            dynamic_dim(dec_target_mask, 0),
-        # #            dynamic_dim(dec_input, 0) == dynamic_dim(enc_input, 0),
-        # #            dynamic_dim(dec_source_mask, 0) == dynamic_dim(enc_input, 0),
-        # #            dynamic_dim(dec_target_mask, 0) == dynamic_dim(enc_input, 0),
-        # #        ]
-        # # ACTIVATE IN ORDER TO RUN EXECUTTORCH - END - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+        #     # dec_source_mask:
+        #     dynamic_dim(dec_source_mask, 0) == dynamic_dim(enc_input, 0),
         #
-        # # constraints = [
-        # # # First dimension of each input is a dynamic batch size
-        # #     dynamic_dim(enc_input_tensor, 0),
-        # #     dynamic_dim(dec_input, 0),
-        # # # The dynamic batch size between the inputs are equal
-        # # #     dynamic_dim(enc_input.shape[0], 0) == dynamic_dim(dec_input.shape[0], 0),
-        # # ]
-        #
-        # # constraints = [
-        # #     # dec_input:
-        # #     dynamic_dim(dec_input, 0) == dynamic_dim(enc_input, 0),
-        # #
-        # #     # dec_source_mask:
-        # #     dynamic_dim(dec_source_mask, 0) == dynamic_dim(enc_input, 0),
-        # #
-        # #     # dec_target_mask:
-        # #     dynamic_dim(dec_target_mask, 0) == dynamic_dim(enc_input, 0),
-        # # ]
-        #
-        # # pre_autograd_aten_dialect = capture_pre_autograd_graph(m, (config, config.total_loc_num))
-        # # aten_dialect: ExportedProgram = export(pre_autograd_aten_dialect, (config, config.total_loc_num))
-        # # edge_program: exir.EdgeProgramManager = exir.to_edge(aten_dialect)
-        # # executorch_program: exir.ExecutorchProgramManager = edge_program.to_executorch()
-        #
-        # # ACTIVATE IN ORDER TO RUN EXECUTTORCH - START - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-        #
-        # #FROM https://pytorch.org/executorch/stable/tutorials/export-to-executorch-tutorial.html#lowering-the-whole-module - START
-        # #================================================================================
-        # #Delegating to a Backend - Lowering the Whole Module
-        # #---------------------------------------------------
-        # # Export and lower the module to Edge Dialect
-        # pytree.register_pytree_node(edict,
-        #                             flatten_fn=_dict_flatten,
-        #                             unflatten_fn=_dict_unflatten,
-        #                             serialized_type_name="EasyDict",
-        #                             flatten_with_keys_fn=_dict_flatten_with_keys
-        #                             )
-        # # torch.utils._pytree.register_pytree_node(edict, dict_flatten_not, dict_unflatten_not, flatten_with_keys_fn=None)
-        # # torch.utils._pytree.register_pytree_node(tuple(config), dict_flatten_not, dict_unflatten_not, flatten_with_keys_fn=None)
-        # # torch.utils._pytree.register_pytree_node(edict, dict_flatten, dict_unflatten, flatten_with_keys_fn=FlattenWithKeysFunc)
-        #
-        # pre_autograd_aten_dialect = torch.export._trace._export(m, (config, total_loc_num), strict=False, pre_dispatch=True)
-        # # pre_autograd_aten_dialect = torch.export._trace._export(m, (config, total_loc_num, device), strict=False, pre_dispatch=True)
-        # # pre_autograd_aten_dialect = torch.export._trace._export(m, (config, config.total_loc_num, device), strict=False, pre_dispatch=True)
-        # # pre_autograd_aten_dialect = capture_pre_autograd_graph(m, (config, config.total_loc_num, device))
-        # aten_dialect: ExportedProgram = export(pre_autograd_aten_dialect, (config, total_loc_num, device), strict=False)
-        # # aten_dialect: ExportedProgram = export(pre_autograd_aten_dialect, (config, config.total_loc_num, device), strict=False)
-        # # pre_autograd_aten_dialect = capture_pre_autograd_graph(m, (config, total_loc_num), constraints=constraints)
-        # # aten_dialect: ExportedProgram = export(pre_autograd_aten_dialect, (config, total_loc_num), constraints=constraints)
-        # edge_program: EdgeProgramManager = to_edge(aten_dialect)
-        # to_be_lowered_module = edge_program.exported_program()
-        #
-        # from executorch.exir.backend.backend_api import LoweredBackendModule, to_backend
-        #
-        # # Lower the module
-        # # lowered_module: torch.fx.GraphModule = to_backend(to_be_lowered_module, XnnpackPartitioner())
-        # lowered_module = edge_program.to_backend(XnnpackPartitioner())
-        # # lowered_module = to_be_lowered_module.to_backend(XnnpackPartitioner)
-        # # lowered_module: LoweredBackendModule = to_backend(
-        # #     XnnpackPartitioner(), to_be_lowered_module, []
-        # # )
-        #
-        # # print(" - train_minimum - Lowering the Whole Module - pre_autograd_aten_dialect - ", pre_autograd_aten_dialect)
-        # # print(" - train_minimum - Lowering the Whole Module - aten_dialect - ", aten_dialect)
-        # # print(" - train_minimum - Lowering the Whole Module - edge_program - ", edge_program)
-        # # print(" - train_minimum - Lowering the Whole Module - to_be_lowered_module - ", to_be_lowered_module)
-        # print(" - train_minimum - Lowering the Whole Module - lowered_module - ", lowered_module)
-        # # print(" - train_minimum - Lowering the Whole Module - lowered_module.backend_id - ", lowered_module.backend_id)
-        # # print(" - train_minimum - Lowering the Whole Module - lowered_module.processed_bytes - ", lowered_module.processed_bytes)
-        # # print(" - train_minimum - Lowering the Whole Module - lowered_module.original_module - ", lowered_module.original_module)
-        #
-        # # Serialize and save it to a file
-        # save_path = save_path = "/home/adonnini1/Development/ContextQSourceCode/NeuralNetworks/LocationPrediction/loweredModels/tpt_delegate.pte"
-        # with open(save_path, "wb") as f:
-        #     f.write(lowered_module.to_executorch().buffer)
-        #     #================================================================================
-        #     #FROM https://pytorch.org/executorch/stable/tutorials/export-to-executorch-tutorial.html#lowering-the-whole-module - END
-        #
-        #     #CODE USED UNTIL 011124 - START
-        #     # # pre_autograd_aten_dialect = capture_pre_autograd_graph(m, (config, total_loc_num),
-        #     # #                                         constraints=specify_constraints(enc_input, dec_input, dec_source_mask,
-        #     # #                                                                        dec_target_mask))
-        #     # aten_dialect: ExportedProgram = export(m, (config, total_loc_num),
-        #     #                                        constraints=specify_constraints(enc_input, dec_input, dec_source_mask,
-        #     #                                                                        dec_target_mask))
-        #     # # aten_dialect: ExportedProgram = export(m, (config, total_loc_num), constraints=constraints)
-        #     # # aten_dialect: ExportedProgram = export(pre_autograd_aten_dialect, (config, config.total_loc_num))
-        #     # edge_program: exir.EdgeProgramManager = exir.to_edge(aten_dialect)
-        #     # executorch_program: exir.ExecutorchProgramManager = edge_program.to_executorch(
-        #     # # ExecutorchBackendConfig(
-        #     # # # passes=[],  # User-defined passes
-        #     # # )
-        #     # # )
-        #     # #
-        #     # # with open("/home/adonnini1/Development/ContextQSourceCode/NeuralNetworks/trajectory-prediction-transformers-master/models/tfmodel.pte", "wb") as file:
-        #     # #     file.write(executorch_program.buffer)
-        #     #
-        #     #
-        #     # edge_program = edge_program.to_backend(XnnpackPartitioner)
-        #     # exec_prog = edge_program.to_executorch()
-        #     #
-        #     # with open(
-        #     #         "/home/adonnini1/Development/ContextQSourceCode/NeuralNetworks/trajectory-prediction-transformers-master/models/tfmodel_exnnpack.pte",
-        #     #         "wb") as file:
-        #     #     file.write(exec_prog.buffer)
-        #     #CODE USED UNTIL 011124 - END
-        #
-        #     # ACTIVATE IN ORDER TO RUN EXECUTTORCH - END - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
-        #
-        #     # to_be_lowered_module = edge_program.exported_program()
-        #     #
-        #     # from executorch.exir.backend.backend_api import LoweredBackendModule, to_backend
-        #     #
-        #     # # Import the backend
-        #     # from executorch.exir.backend.test.backend_with_compiler_demo import (  # noqa
-        #     #     BackendWithCompilerDemo,
-        #     # )
-        #     #
-        #     # # Lower the module
-        #     # lowered_module: LoweredBackendModule = to_backend(
-        #     # "BackendWithCompilerDemo", to_be_lowered_module, []
-        #     # )
-        #     # print(lowered_module)
-        #     # print(lowered_module.backend_id)
-        #     # print(lowered_module.processed_bytes)
-        #     # print(lowered_module.original_module)
-        #     #
-        #     # # Serialize and save it to a file
-        #     # save_path = "/home/adonnini1/Development/ContextQSourceCode/NeuralNetworks/trajectory-prediction-transformers-master/models/delegate.pte"
-        #     # with open(save_path, "wb") as f:
-        #     #     f.write(lowered_module.buffer())
-        #
-        #     # open("tfmodel.pte", "wb").write(exir.capture(m, (config, config.total_loc_num))
-        #     #                                 .to_edge().to_executorch().buffer)
-        #
-        #     # print(exir.capture(m, (enc_input_tuple, dec_input_tuple, dec_source_mask_tuple, dec_target_mask_tuple)).to_edge())
-        #     # open("tfmodel.pte", "wb").write(exir.capture(m, (enc_input_tuple, dec_input_tuple, dec_source_mask_tuple, dec_target_mask_tuple))
-        #     #                                 .to_edge().to_executorch().buffer)
-        #     # print(exir.capture(m, data_trg_tuple).to_edge())
-        #     # open("tfmodel.pte", "wb").write(exir.capture(m, data_trg_tuple).to_edge().to_executorch().buffer)
-        #     # print(exir.capture(m, m.get_random_inputs()).to_edge())
-        #     # open("tfmodel.pte", "wb").write(exir.capture(m, m.get_random_inputs()).to_edge().to_executorch().buffer)
-        #     # print(exir.capture(m, (config, config.total_loc_num)).to_edge())
-        #     # open("tfmodel.pte", "wb").write(exir.capture(m, (config, config.total_loc_num)).to_edge().to_executorch().buffer)
-        #     # print(exir.capture(m, encoder_ip_size, decoder_ip_size, model_op_size, emb_size, num_heads, ff_hidden_size, n, dropout).to_edge()
-        #     # open("tfmodel.pte", "wb").write(exir.capture(m, encoder_ip_size, decoder_ip_size, model_op_size, emb_size, num_heads, ff_hidden_size, n, dropout=0.1).to_edge().to_executorch().buffer)
-        #     # print(exir.capture(m, m.get_random_inputs()).to_edge())
-        #     # open("tfmodel.pte", "wb").write(exir.capture(m, m.get_random_inputs()).to_edge().to_executorch().buffer)
-        #
+        #     # dec_target_mask:
+        #     dynamic_dim(dec_target_mask, 0) == dynamic_dim(enc_input, 0),
+        # ]
+
+        # pre_autograd_aten_dialect = capture_pre_autograd_graph(m, (config, config.total_loc_num))
+        # aten_dialect: ExportedProgram = export(pre_autograd_aten_dialect, (config, config.total_loc_num))
+        # edge_program: exir.EdgeProgramManager = exir.to_edge(aten_dialect)
+        # executorch_program: exir.ExecutorchProgramManager = edge_program.to_executorch()
+
+        #FROM https://pytorch.org/executorch/stable/tutorials/export-to-executorch-tutorial.html#lowering-the-whole-module - START
+        #================================================================================
+        #Delegating to a Backend - Lowering the Whole Module
+        #---------------------------------------------------
+        # Export and lower the module to Edge Dialect
+        pytree.register_pytree_node(edict,
+                                    flatten_fn=_dict_flatten,
+                                    unflatten_fn=_dict_unflatten,
+                                    serialized_type_name="EasyDict",
+                                    flatten_with_keys_fn=_dict_flatten_with_keys
+                                    )
+        # torch.utils._pytree.register_pytree_node(edict, dict_flatten_not, dict_unflatten_not, flatten_with_keys_fn=None)
+        # torch.utils._pytree.register_pytree_node(tuple(config), dict_flatten_not, dict_unflatten_not, flatten_with_keys_fn=None)
+        # torch.utils._pytree.register_pytree_node(edict, dict_flatten, dict_unflatten, flatten_with_keys_fn=FlattenWithKeysFunc)
+
+        pre_autograd_aten_dialect = torch.export._trace._export(m, (config, total_loc_num), strict=False, pre_dispatch=True)
+        # pre_autograd_aten_dialect = torch.export._trace._export(m, (config, total_loc_num, device), strict=False, pre_dispatch=True)
+        # pre_autograd_aten_dialect = torch.export._trace._export(m, (config, config.total_loc_num, device), strict=False, pre_dispatch=True)
+        # pre_autograd_aten_dialect = capture_pre_autograd_graph(m, (config, config.total_loc_num, device))
+        aten_dialect: ExportedProgram = export(pre_autograd_aten_dialect, (config, total_loc_num, device), strict=False)
+        # aten_dialect: ExportedProgram = export(pre_autograd_aten_dialect, (config, config.total_loc_num, device), strict=False)
+        # pre_autograd_aten_dialect = capture_pre_autograd_graph(m, (config, total_loc_num), constraints=constraints)
+        # aten_dialect: ExportedProgram = export(pre_autograd_aten_dialect, (config, total_loc_num), constraints=constraints)
+        edge_program: EdgeProgramManager = to_edge(aten_dialect)
+        to_be_lowered_module = edge_program.exported_program()
+
+        from executorch.exir.backend.backend_api import LoweredBackendModule, to_backend
+
+        # Lower the module
+        # lowered_module: torch.fx.GraphModule = to_backend(to_be_lowered_module, XnnpackPartitioner())
+        lowered_module = edge_program.to_backend(XnnpackPartitioner())
+        # lowered_module = to_be_lowered_module.to_backend(XnnpackPartitioner)
+        # lowered_module: LoweredBackendModule = to_backend(
+        #     XnnpackPartitioner(), to_be_lowered_module, []
+        # )
+
+        # print(" - train_minimum - Lowering the Whole Module - pre_autograd_aten_dialect - ", pre_autograd_aten_dialect)
+        # print(" - train_minimum - Lowering the Whole Module - aten_dialect - ", aten_dialect)
+        # print(" - train_minimum - Lowering the Whole Module - edge_program - ", edge_program)
+        # print(" - train_minimum - Lowering the Whole Module - to_be_lowered_module - ", to_be_lowered_module)
+        print(" - train_minimum - Lowering the Whole Module - lowered_module - ", lowered_module)
+        # print(" - train_minimum - Lowering the Whole Module - lowered_module.backend_id - ", lowered_module.backend_id)
+        # print(" - train_minimum - Lowering the Whole Module - lowered_module.processed_bytes - ", lowered_module.processed_bytes)
+        # print(" - train_minimum - Lowering the Whole Module - lowered_module.original_module - ", lowered_module.original_module)
+
+        # Serialize and save it to a file
+        save_path = save_path = "/home/adonnini1/Development/ContextQSourceCode/NeuralNetworks/LocationPrediction/loweredModels/tpt_delegate.pte"
+        with open(save_path, "wb") as f:
+            f.write(lowered_module.to_executorch().buffer)
+            #================================================================================
+            #FROM https://pytorch.org/executorch/stable/tutorials/export-to-executorch-tutorial.html#lowering-the-whole-module - END
+
+            #CODE USED UNTIL 011124 - START
+            # # pre_autograd_aten_dialect = capture_pre_autograd_graph(m, (config, total_loc_num),
+            # #                                         constraints=specify_constraints(enc_input, dec_input, dec_source_mask,
+            # #                                                                        dec_target_mask))
+            # aten_dialect: ExportedProgram = export(m, (config, total_loc_num),
+            #                                        constraints=specify_constraints(enc_input, dec_input, dec_source_mask,
+            #                                                                        dec_target_mask))
+            # # aten_dialect: ExportedProgram = export(m, (config, total_loc_num), constraints=constraints)
+            # # aten_dialect: ExportedProgram = export(pre_autograd_aten_dialect, (config, config.total_loc_num))
+            # edge_program: exir.EdgeProgramManager = exir.to_edge(aten_dialect)
+            # executorch_program: exir.ExecutorchProgramManager = edge_program.to_executorch(
+            # # ExecutorchBackendConfig(
+            # # # passes=[],  # User-defined passes
+            # # )
+            # # )
+            # #
+            # # with open("/home/adonnini1/Development/ContextQSourceCode/NeuralNetworks/trajectory-prediction-transformers-master/models/tfmodel.pte", "wb") as file:
+            # #     file.write(executorch_program.buffer)
+            #
+            #
+            # edge_program = edge_program.to_backend(XnnpackPartitioner)
+            # exec_prog = edge_program.to_executorch()
+            #
+            # with open(
+            #         "/home/adonnini1/Development/ContextQSourceCode/NeuralNetworks/trajectory-prediction-transformers-master/models/tfmodel_exnnpack.pte",
+            #         "wb") as file:
+            #     file.write(exec_prog.buffer)
+            #CODE USED UNTIL 011124 - END
+
+            # ACTIVATE IN ORDER TO RUN EXECUTTORCH - END - \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
+
+            # to_be_lowered_module = edge_program.exported_program()
+            #
+            # from executorch.exir.backend.backend_api import LoweredBackendModule, to_backend
+            #
+            # # Import the backend
+            # from executorch.exir.backend.test.backend_with_compiler_demo import (  # noqa
+            #     BackendWithCompilerDemo,
+            # )
+            #
+            # # Lower the module
+            # lowered_module: LoweredBackendModule = to_backend(
+            # "BackendWithCompilerDemo", to_be_lowered_module, []
+            # )
+            # print(lowered_module)
+            # print(lowered_module.backend_id)
+            # print(lowered_module.processed_bytes)
+            # print(lowered_module.original_module)
+            #
+            # # Serialize and save it to a file
+            # save_path = "/home/adonnini1/Development/ContextQSourceCode/NeuralNetworks/trajectory-prediction-transformers-master/models/delegate.pte"
+            # with open(save_path, "wb") as f:
+            #     f.write(lowered_module.buffer())
+
+            # open("tfmodel.pte", "wb").write(exir.capture(m, (config, config.total_loc_num))
+            #                                 .to_edge().to_executorch().buffer)
+
+            # print(exir.capture(m, (enc_input_tuple, dec_input_tuple, dec_source_mask_tuple, dec_target_mask_tuple)).to_edge())
+            # open("tfmodel.pte", "wb").write(exir.capture(m, (enc_input_tuple, dec_input_tuple, dec_source_mask_tuple, dec_target_mask_tuple))
+            #                                 .to_edge().to_executorch().buffer)
+            # print(exir.capture(m, data_trg_tuple).to_edge())
+            # open("tfmodel.pte", "wb").write(exir.capture(m, data_trg_tuple).to_edge().to_executorch().buffer)
+            # print(exir.capture(m, m.get_random_inputs()).to_edge())
+            # open("tfmodel.pte", "wb").write(exir.capture(m, m.get_random_inputs()).to_edge().to_executorch().buffer)
+            # print(exir.capture(m, (config, config.total_loc_num)).to_edge())
+            # open("tfmodel.pte", "wb").write(exir.capture(m, (config, config.total_loc_num)).to_edge().to_executorch().buffer)
+            # print(exir.capture(m, encoder_ip_size, decoder_ip_size, model_op_size, emb_size, num_heads, ff_hidden_size, n, dropout).to_edge()
+            # open("tfmodel.pte", "wb").write(exir.capture(m, encoder_ip_size, decoder_ip_size, model_op_size, emb_size, num_heads, ff_hidden_size, n, dropout=0.1).to_edge().to_executorch().buffer)
+            # print(exir.capture(m, m.get_random_inputs()).to_edge())
+            # open("tfmodel.pte", "wb").write(exir.capture(m, m.get_random_inputs()).to_edge().to_executorch().buffer)
+
             # EXECUTORCH - END - ><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 
 
@@ -498,32 +492,32 @@ def trainNet(config, model, train_loader, val_loader, device, log_dir):
         # and if it has, it will make a checkpoint of the current model
         early_stopping(return_dict, model)
 
-        # PYTORCH MOBILE - START - >o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<
-
-        config = load_config("./config/geolife/transformer.yml")
-
-        print("LocationPrediction - utils - train.py - config - 0 - ",config)
-
-        config = edict(config)
-        # config = AttrDict(config)
-        # config = _idl.AttrDict(config)
-
-        print("LocationPrediction - utils - train.py - config - 1 - ",config)
-
-        # total_loc_num = config['total_loc_num']
-        total_loc_num = config.total_loc_num
-        print("LocationPrediction - utils - train.py - total_loc_num - ",total_loc_num)
-
-        save_location = "./outputs"
-
-        #       traced_cell = torch.jit.trace(model, (config, total_loc_num)
-        torchscript_model = torch.jit.script(model)
-
-        # Export lite interpreter version model (compatible with lite interpreter)
-        torchscript_model._save_for_lite_interpreter(os.path.join(save_location, 'torchMobileLoweredModel.pt'))
-        #       torchscript_model._save_for_lite_interpreter("/home/adonnini1/Development/ContextQSourceCode/NeuralNetworks/trajectory-prediction-transformers-master/models/epochlite.ptl")
-
-        # PYTORCH MOBILE - END - >o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<
+        # # PYTORCH MOBILE - START - >o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<
+        # 
+        # config = load_config("./config/geolife/transformer.yml")
+        # 
+        # print("LocationPrediction - utils - train.py - config - 0 - ",config)
+        # 
+        # config = edict(config)
+        # # config = AttrDict(config)
+        # # config = _idl.AttrDict(config)
+        # 
+        # print("LocationPrediction - utils - train.py - config - 1 - ",config)
+        # 
+        # # total_loc_num = config['total_loc_num']
+        # total_loc_num = config.total_loc_num
+        # print("LocationPrediction - utils - train.py - total_loc_num - ",total_loc_num)
+        # 
+        # save_location = "./outputs"
+        # 
+        # #       traced_cell = torch.jit.trace(model, (config, total_loc_num)
+        # torchscript_model = torch.jit.script(model)
+        # 
+        # # Export lite interpreter version model (compatible with lite interpreter)
+        # torchscript_model._save_for_lite_interpreter(os.path.join(save_location, 'torchMobileLoweredModel.pt'))
+        # #       torchscript_model._save_for_lite_interpreter("/home/adonnini1/Development/ContextQSourceCode/NeuralNetworks/trajectory-prediction-transformers-master/models/epochlite.ptl")
+        # 
+        # # PYTORCH MOBILE - END - >o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<>o<
 
 
         if early_stopping.early_stop:
