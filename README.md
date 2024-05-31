@@ -16,8 +16,8 @@ c) In the executorch directory, run the following commands to install packages n
 - pip install trackintel
 
 ## Running the Training Loop and Executorch Model Export
-1. Create a \models folder in the working directory.
-2. In the working directory, execute the train-minimum.py script. 
+1. If there is a folder called ```temp``` in <working directory>/data delete it.
+2. In the working directory, execute the python main.py config/geolife/transformer.yml script. 
 
 Validation after every epoch has been disabled as it intefered with torchscript execution (when torchscript was enabled).
 
