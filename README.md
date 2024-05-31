@@ -27,7 +27,7 @@ ii) ```train.py``` the module where the executorch code is located, is (very) me
 iii) Although they should work, I did not test the instructions in this ```README.md``` file. However I did run ```main.py config/geolife/transformer.yml``` on my system in a working directory set up as described above producing the latest execution failure as described in
 https://github.com/pytorch/executorch/issues/120219
   
-iv) The executorch related code in ```train.py``` starts here
+iv) The executorch related code in ```train.py``` (mostly commented out) starts here
 https://github.com/adonnini/LocationPredictionContextQ/blob/83c4eb6b9c85bf09abda0f3799172f649d596696/utils/train.py#L284
 and ends here
 https://github.com/adonnini/LocationPredictionContextQ/blob/83c4eb6b9c85bf09abda0f3799172f649d596696/utils/train.py#L518
