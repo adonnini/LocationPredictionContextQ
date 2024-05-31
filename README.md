@@ -25,10 +25,9 @@ i) I am new to Python. Please bear in this mind as you will probably find some (
 ii) ```train-minimum.py``` is (very) messy. I have been using it as a sandbox. There are many lines which are commented out. They are either instructions, notes, or code which I tried and disabled because it did not work, or code I used to test some ideas which I abandoned. I am sorry as this will make navigating/understanding train-minimum.py (more) difficult to navigate.
 
 iii) Although they should work, I did not test the instructions in this ```README.md``` file. However I did run ```train-minimum.py``` on my system in a working direcotry set up as described above producing the execution failure as described in
-https://github.com/pytorch/executorch/issues/1350
+https://github.com/pytorch/executorch/issues/120219
   
-iv) The executorch related code starts her
-https://github.com/adonnini/adonnini-trajectory-prediction-transformers-masterContextQ/blob/c6058f118e34c4a49e72f399ba3305a01e583697/train-minimum.py#L333
+iv) The executorch related code starts here
+https://github.com/adonnini/LocationPredictionContextQ/blob/c43859507144ed5596323af2831d01c8c9e7ab6c/utils/train.py#L296
 and ends here
-https://github.com/adonnini/adonnini-trajectory-prediction-transformers-masterContextQ/blob/2bf37ae1cd5d25ea43f442187483bbbdfaa8b677/train-minimum.py#L519
-
+https://github.com/adonnini/LocationPredictionContextQ/blob/c43859507144ed5596323af2831d01c8c9e7ab6c/utils/train.py#L446
