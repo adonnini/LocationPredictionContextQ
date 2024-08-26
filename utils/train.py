@@ -330,6 +330,7 @@ def trainNet(config, model, train_loader, val_loader, device, log_dir):
 
         m.eval()
 
+        # m_compiled = torch.compile(m)
 
         # exported_program: torch.export.ExportedProgram = export(m, (config, config.total_loc_num))
         # print(exported_program)
@@ -409,11 +410,14 @@ def trainNet(config, model, train_loader, val_loader, device, log_dir):
         # torch.utils._pytree.register_pytree_node(tuple(config), dict_flatten_not, dict_unflatten_not, flatten_with_keys_fn=None)
         # torch.utils._pytree.register_pytree_node(edict, dict_flatten, dict_unflatten, flatten_with_keys_fn=FlattenWithKeysFunc)
 
-        pre_autograd_aten_dialect = torch.export._trace._export(m, (config, total_loc_num), strict=False, pre_dispatch=True)
+        # pre_autograd_aten_dialect = torch.export.export(m_compiled, args=(config, total_loc_num), strict=False)
+        pre_autograd_aten_dialect = torch.export.export(m, args=(config, total_loc_num), strict=False)
+        # pre_autograd_aten_dialect = torch.export._trace._export(m, (config, total_loc_num), strict=False, pre_dispatch=True)
         # pre_autograd_aten_dialect = torch.export._trace._export(m, (config, total_loc_num, device), strict=False, pre_dispatch=True)
         # pre_autograd_aten_dialect = torch.export._trace._export(m, (config, config.total_loc_num, device), strict=False, pre_dispatch=True)
         # pre_autograd_aten_dialect = capture_pre_autograd_graph(m, (config, config.total_loc_num, device))
-        aten_dialect: ExportedProgram = export(pre_autograd_aten_dialect, (config, total_loc_num, device), strict=False)
+        # aten_dialect: ExportedProgram = export(m, (config, total_loc_num), strict=False)
+        aten_dialect: ExportedProgram = export(pre_autograd_aten_dialect, (config, total_loc_num), strict=False)
         # aten_dialect: ExportedProgram = export(pre_autograd_aten_dialect, (config, config.total_loc_num, device), strict=False)
         # pre_autograd_aten_dialect = capture_pre_autograd_graph(m, (config, total_loc_num), constraints=constraints)
         # aten_dialect: ExportedProgram = export(pre_autograd_aten_dialect, (config, total_loc_num), constraints=constraints)
@@ -891,7 +895,6 @@ class AttrDict(dict):
         super(AttrDict, self).__init__(*args, **kwargs)
 
         self.__dict__ = self
-
 
 
 
