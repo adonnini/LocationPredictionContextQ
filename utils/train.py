@@ -95,6 +95,8 @@ def get_performance_dict(return_dict):
 
 
 def send_to_device(inputs, device, config):
+    global input_data
+    input_data = inputs
     x, y, x_dict = inputs
     if config.networkName == "deepmove":
         x = (x[0].to(device), x[1].to(device))
@@ -279,7 +281,7 @@ def trainNet(config, model, train_loader, val_loader, device, log_dir):
 
         import sys
         sys.path.append(
-            '/home/adonnini1/Development/ContextQSourceCode/NeuralNetworks/trajectory-prediction-transformers-master/')
+            '/home/adonnini1/Development/ContextQSourceCode/NeuralNetworks/LocationPredictionContextQ/')
 
         # EXECUTORCH - START - ><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><
 
@@ -290,7 +292,7 @@ def trainNet(config, model, train_loader, val_loader, device, log_dir):
         # import torchvision
 
         from torch._export import capture_pre_autograd_graph
-        from torch.export import export, ExportedProgram, dynamic_dim
+        from torch.export import export, ExportedProgram   #, dynamic_dim
         from executorch.backends.xnnpack.partition.xnnpack_partitioner import XnnpackPartitioner
         from executorch.exir import ExecutorchBackendConfig, EdgeProgramManager, to_edge
 
@@ -329,6 +331,8 @@ def trainNet(config, model, train_loader, val_loader, device, log_dir):
         # m = TransEncoder(config, config.total_loc_num).to(device)
 
         m.eval()
+
+        x, y, x_dict = send_to_device(input_data, device, config)
 
         # m_compiled = torch.compile(m)
 
@@ -411,13 +415,18 @@ def trainNet(config, model, train_loader, val_loader, device, log_dir):
         # torch.utils._pytree.register_pytree_node(edict, dict_flatten, dict_unflatten, flatten_with_keys_fn=FlattenWithKeysFunc)
 
         # pre_autograd_aten_dialect = torch.export.export(m_compiled, args=(config, total_loc_num), strict=False)
-        pre_autograd_aten_dialect = torch.export.export(m, args=(config, total_loc_num), strict=False)
+        pre_autograd_aten_dialect = torch.export.export(model, args=(x, x_dict), strict=False)
+        # pre_autograd_aten_dialect = torch.export.export(model, args=(x, x_dict, device), strict=False)
+        # pre_autograd_aten_dialect = torch.export.export(model, args=(config, total_loc_num), strict=False)
+        # pre_autograd_aten_dialect = torch.export.export(m, args=(total_loc_num, config), strict=False)
+        # pre_autograd_aten_dialect = torch.export.export(m, args=(config, total_loc_num), strict=False)
         # pre_autograd_aten_dialect = torch.export._trace._export(m, (config, total_loc_num), strict=False, pre_dispatch=True)
         # pre_autograd_aten_dialect = torch.export._trace._export(m, (config, total_loc_num, device), strict=False, pre_dispatch=True)
         # pre_autograd_aten_dialect = torch.export._trace._export(m, (config, config.total_loc_num, device), strict=False, pre_dispatch=True)
         # pre_autograd_aten_dialect = capture_pre_autograd_graph(m, (config, config.total_loc_num, device))
         # aten_dialect: ExportedProgram = export(m, (config, total_loc_num), strict=False)
-        aten_dialect: ExportedProgram = export(pre_autograd_aten_dialect, (config, total_loc_num), strict=False)
+        aten_dialect: ExportedProgram = export(pre_autograd_aten_dialect, (x, x_dict), strict=False)
+        # aten_dialect: ExportedProgram = export(pre_autograd_aten_dialect, (config, total_loc_num), strict=False)
         # aten_dialect: ExportedProgram = export(pre_autograd_aten_dialect, (config, config.total_loc_num, device), strict=False)
         # pre_autograd_aten_dialect = capture_pre_autograd_graph(m, (config, total_loc_num), constraints=constraints)
         # aten_dialect: ExportedProgram = export(pre_autograd_aten_dialect, (config, total_loc_num), constraints=constraints)
@@ -895,6 +904,7 @@ class AttrDict(dict):
         super(AttrDict, self).__init__(*args, **kwargs)
 
         self.__dict__ = self
+
 
 
 
