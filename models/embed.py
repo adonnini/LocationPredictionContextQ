@@ -5,13 +5,6 @@ import torch.nn.functional as F
 
 import math
 
-from typing import Dict
-from typing import Optional,Final,cast
-import pandas as pd
-import numpy as np
-from easydict import EasyDict as edict
-from torch.nn import Dropout
-
 
 class PositionalEncoding(nn.Module):
     def __init__(self, emb_size: int, dropout: float, maxlen: int = 5000):
@@ -35,15 +28,10 @@ class TemporalEmbedding(nn.Module):
         super(TemporalEmbedding, self).__init__()
 
         self.emb_info = emb_info
-        # quarter of an hour
+        # quater of an hour
         self.minute_size = 4
         hour_size = 24
         weekday = 7
-
-        #AD ADDED
-        self.time_embed = nn.Embedding(self.minute_size * hour_size, d_input)
-
-        print("LocationPrediction - embed.py - TemporalEmbedding - emb_info - 0 - ",emb_info)
 
         if self.emb_info == "all":
             self.minute_embed = nn.Embedding(self.minute_size, d_input)
@@ -55,10 +43,6 @@ class TemporalEmbedding(nn.Module):
             self.weekday_embed = nn.Embedding(weekday, d_input)
 
     def forward(self, time, weekday):
-
-        print("LocationPrediction - embed.py - TemporalEmbedding - forward - time - ",time)
-        print("LocationPrediction - embed.py - TemporalEmbedding - forward - weekday - ",weekday)
-
         if self.emb_info == "all":
             hour = torch.div(time, self.minute_size, rounding_mode="floor")
             minutes = time % 4
@@ -156,87 +140,25 @@ class AllEmbedding(nn.Module):
 
         # position encoder for transformer
         self.if_pos_encoder = if_pos_encoder
-        self.dropout = nn.Dropout(0.1)
-
         if self.if_pos_encoder:
             self.pos_encoder = PositionalEncoding(d_input, dropout=0.1)
         else:
             self.dropout = nn.Dropout(0.1)
 
-    # def forward(self, src, tensor_len, tensor_user, tensor_time, tensor_diff, tensor_duration, tensor_weekday) -> Tensor:
-    # def forward(self, src, context_dict) -> Tensor:
-    # def forward(self, src, context_dict: Dict[str, torch.Tensor]) -> Tensor:
-    # def forward(self, src, context_dict: torch.Tensor=torch.Tensor()) -> Tensor:
-
-    def forward(self, src, tensor_len, tensor_user, tensor_time, tensor_diff, tensor_duration, tensor_weekday) -> Tensor:
+    def forward(self, src, context_dict) -> Tensor:
         emb = self.emb_loc(src)
-
-        # import tensorflow as tf
-        # context_dict_tensor = tf.convert_to_tensor(list(context_dict.values()))
-        # print("LocationPrediction - embed.py - AllEmbedding.forward - context_dict_tensor - 0 - ",context_dict_tensor)
-
-        # from tensordict import TensorDict
-        # data = TensorDict({
-        #     "len": context_dict["len"],
-        #     "user": context_dict["user"],
-        #     "time": context_dict["time"],
-        #     "diff": context_dict["diff"],
-        #     "duration": context_dict["duration"],
-        #     "weekday": context_dict["weekday"],
-        # }, batch_size=[context_dict["time"].size(dim=0), context_dict["time"].size(dim=1)])
-        # print("LocationPrediction - embed.py - AllEmbedding.forward - data - 0 - ",data)
-
-        # # Creates a dataframe with keys as index and values as cell values.
-        # df = pd.DataFrame(context_dict)
-        # # Create a new set of index from min and max of the dictionary keys.
-        # new_index = np.arange(int(df.index.min()),
-        #                       int(df.index.max())).astype(str)
-        # # Add the new index to the existing index and fill the nan values with 0, take a transpose of dataframe.
-        # new_df = df.reindex(new_index).fillna(0).T.astype(int)
-        #
-        # context_dict_tensor = df.convert_to_tensor(new_df.values)
-
-        # contextDict = edict(context_dict)
-
-        # print("LocationPrediction - embed.py - AllEmbedding.forward - context_dict - 0 - ",context_dict)
-        # print("LocationPrediction - embed.py - AllEmbedding.forward - contextDict - 0 - ",contextDict)
-
-        print("LocationPrediction - embed.py - AllEmbedding.forward - tensor_time - ",tensor_time)
-        print("LocationPrediction - embed.py - AllEmbedding.forward - tensor_weekday - ",tensor_weekday)
-
-        input_time = tensor_time
-        input_weekday = tensor_weekday
-        # input_time = contextDict.time
-        # input_weekday = contextDict.weekday
-        # input_time = context_dict["time"]
-        # input_weekday = context_dict["weekday"]
-        # input_duration = context_dict["duration"]
-        # input_poi = context_dict["poi"]
 
         if self.if_include_time:
             if self.emb_type == "add":
-                # tmp_temporal_embedding = self.temporal_embedding(input_time, input_weekday)
-                # tmp_list = self.temporal_embedding(input_time, input_weekday).tolist()
-                # tmp_tensor = torch.tensor(tmp_list)
-                # emb = emb + tmp_tensor
-                temporal_embedding_time_weekday = self.temporal_embedding(input_time, input_weekday)
-                if temporal_embedding_time_weekday is not None:
-                    emb = emb + temporal_embedding_time_weekday
-                # emb = emb + self.temporal_embedding(input_time, input_weekday)
-                # emb = emb + self.temporal_embedding(context_dict["time"], context_dict["weekday"])
+                emb = emb + self.temporal_embedding(context_dict["time"], context_dict["weekday"])
             else:
-                temporal_embedding_time_weekday = self.temporal_embedding(input_time, input_weekday)
-                if temporal_embedding_time_weekday is not None:
-                    emb = torch.cat([emb, temporal_embedding_time_weekday], dim=-1)
-                # emb = torch.cat([emb, self.temporal_embedding(tensor_time, tensor_weekday)], dim=-1)
-                # emb = torch.cat([emb, self.temporal_embedding(context_dict["time"], context_dict["weekday"])], dim=-1)
+                emb = torch.cat([emb, self.temporal_embedding(context_dict["time"], context_dict["weekday"])], dim=-1)
 
         if self.if_include_duration:
-            emb = emb + self.emb_duration(tensor_duration)
-            # emb = emb + self.emb_duration(context_dict["duration"])
+            emb = emb + self.emb_duration(context_dict["duration"])
 
-        # if self.if_include_poi:
-        #     emb = emb + self.poi_net(context_dict["poi"])
+        if self.if_include_poi:
+            emb = emb + self.poi_net(context_dict["poi"])
 
         if self.if_pos_encoder:
             return self.pos_encoder(emb * math.sqrt(self.d_input))
